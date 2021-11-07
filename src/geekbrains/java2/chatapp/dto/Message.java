@@ -1,4 +1,4 @@
-package geekbrains.java2.chatapp;
+package geekbrains.java2.chatapp.dto;
 
 import java.util.Date;
 import java.util.Optional;

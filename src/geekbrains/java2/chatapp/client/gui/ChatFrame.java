@@ -1,6 +1,7 @@
-package geekbrains.java2.chatapp.client;
+package geekbrains.java2.chatapp.client.gui;
 
-import geekbrains.java2.chatapp.Message;
+import geekbrains.java2.chatapp.dto.Message;
+import geekbrains.java2.chatapp.client.ChatGuiClient;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -10,9 +11,9 @@ import java.io.IOException;
 
 public class ChatFrame extends JFrame {
     JTextArea messages;
-    ChatClient chatClient;
-    public ChatFrame(ChatClient client){
-        chatClient = client;
+    ChatGuiClient chatGuiClient;
+    public ChatFrame(ChatGuiClient client){
+        chatGuiClient = client;
         setBounds(100,100,600,600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         initializeViews();
@@ -31,7 +32,7 @@ public class ChatFrame extends JFrame {
         sendButton.addActionListener(event->{
             if(!sendMessageField.getText().isEmpty())
             {
-                chatClient.sendMessage(sendMessageField.getText());
+                chatGuiClient.sendMessage(sendMessageField.getText());
             }
         });
         bottom.add(sendMessageField,BorderLayout.CENTER);
