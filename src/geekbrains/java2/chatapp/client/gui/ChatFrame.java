@@ -1,52 +1,32 @@
 package geekbrains.java2.chatapp.client.gui;
 
 import geekbrains.java2.chatapp.dto.Message;
-import geekbrains.java2.chatapp.client.ChatGuiClient;
-
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
+import java.util.function.Consumer;
 
 public class ChatFrame extends JFrame {
     JTextArea messages;
-    ChatGuiClient chatGuiClient;
-    public ChatFrame(ChatGuiClient client){
-        chatGuiClient = client;
+    public ChatFrame(Consumer<String> messageSender){
         setBounds(100,100,600,600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        initializeViews();
+        initializeViews(messageSender);
         setVisible(true);
     }
-    private void initializeViews(){
+    private void initializeViews(Consumer<String> messageSender){
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
         messages = new JTextArea();
         messages.setEditable(false);
         messages.setBorder(BorderFactory.createLineBorder(Color.lightGray,3));
-        add(messages, BorderLayout.CENTER);
-        JPanel bottom = new JPanel();
-        bottom.setLayout(new BorderLayout());
-        JButton sendButton = new JButton();
-        JTextField sendMessageField = new JTextField() ;
-        sendMessageField.addActionListener(event-> sendButton.doClick());
-        sendButton.addActionListener(event->{
-            if(!sendMessageField.getText().isEmpty())
-            {
-                chatGuiClient.sendMessage(sendMessageField.getText());
-            }
-        });
-        bottom.add(sendMessageField,BorderLayout.CENTER);
-        try{
-            Image iconImage = ImageIO.read(new File("resources/send_icon.png"));
-            sendButton.setIcon(new ImageIcon(iconImage));
-        }
-        catch (IOException exception){
-            throw new ResourceLoadingException("Button image loading failed" , exception);
-        }
-        add(bottom,BorderLayout.SOUTH);
-        bottom.add(sendButton,BorderLayout.EAST);
+        panel.add(messages, BorderLayout.CENTER);
+        setTitle("Chat frame");
+        panel.add(new MessageSendPanel(messageSender),BorderLayout.SOUTH);
+        panel.setBackground(Color.black);
+        setContentPane(panel);
     }
-    public void addOutComingMessage(Message message){
-        messages.setText(messages.getText() + "\n" + message.getText());
+
+    public void addMessage(Message message){
+        messages.append("\n"+message.getText());
     }
 }

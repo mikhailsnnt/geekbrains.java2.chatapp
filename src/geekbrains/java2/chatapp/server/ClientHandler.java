@@ -17,15 +17,14 @@ public class ClientHandler {
     private String username;
 
     public boolean isAuthenticated() {
-        return isAuthenticated;
+        return username != null;
     }
 
     private final ChatAppServer server;
-    private boolean isAuthenticated;
+
     public ClientHandler(Socket socket , ChatAppServer server) {
         this.socket = socket;
         this.server = server;
-        isAuthenticated = false;
         try {
             this.out = new ObjectOutputStream(new BufferedOutputStream( socket.getOutputStream() ) );
             out.flush();
@@ -34,7 +33,6 @@ public class ClientHandler {
         catch (IOException ioException){
             throw  new ServerNetworkingException("Initialising clienthandler exception", ioException);
         }
-        authenticate();
     }
     private void mainListenLoop(){
         while(true){
@@ -52,7 +50,7 @@ public class ClientHandler {
             }
         }
     }
-    private void authenticate(){
+    public void authenticate(){
         long authenticationStarted = System.currentTimeMillis();
         while(System.currentTimeMillis() - authenticationStarted < (long)1000*AUTHENTICATE_TIMEOUT){
              AuthCredentials credentials = (AuthCredentials) readObject();
@@ -69,10 +67,12 @@ public class ClientHandler {
             }
             sendObject(AuthenticationResult.SUCCESSFULLY);
             sendUTF(user.get().getUsername());
-            isAuthenticated = true;
+            username = user.get().getUsername();
             mainListenLoop();
-
+            return;
         }
+        sendObject(AuthenticationResult.TIMEOUT);
+
     }
     private Object readObject(){
         try{

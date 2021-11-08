@@ -19,22 +19,25 @@ public class AuthFrame {
         JTextField loginTextField = new JTextField();
         JPasswordField passwordField = new JPasswordField();
         JPanel panel = new JPanel(new GridLayout(2,1));
+        loginTextField.setColumns(20);
+        passwordField.setColumns(20);
         panel.add(loginTextField);
         panel.add(passwordField);
-        panel.setSize(new Dimension(160,160));
         frame.add(panel);
         JButton authButton = new JButton("Log in");
         authButton.addActionListener(e -> {
             if(!loginTextField.getText().isEmpty() && passwordField.getPassword().length != 0)
-                if(performAuthentication.authenticate(
-                        new AuthCredentials(loginTextField.getText(),String.valueOf(passwordField.getPassword()))))
-                {
-                    frame.dispose();
-                }
+                performAuthentication.authenticate(
+                        new AuthCredentials(loginTextField.getText(),String.valueOf(passwordField.getPassword())));
         });
         frame.add(authButton, BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.pack();
         frame.setVisible(true);
+    }
+    public void dispose(){
+        frame.setVisible(false);
+        frame.dispose();
     }
 
 }

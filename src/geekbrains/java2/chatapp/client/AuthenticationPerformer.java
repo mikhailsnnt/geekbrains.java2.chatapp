@@ -1,7 +1,7 @@
 package geekbrains.java2.chatapp.client;
 
 import geekbrains.java2.chatapp.dto.AuthCredentials;
-
+@FunctionalInterface
 public interface AuthenticationPerformer {
-    boolean authenticate(AuthCredentials credentials);
+    void authenticate(AuthCredentials credentials);
 }

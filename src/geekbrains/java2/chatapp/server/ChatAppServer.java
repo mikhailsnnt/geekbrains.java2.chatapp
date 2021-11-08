@@ -24,7 +24,11 @@ public class ChatAppServer {
             ServerSocket serverSocket = new ServerSocket(PORT);
             while (true){
                 Socket socket = serverSocket.accept();
-                new Thread(()-> clientHandlers.add(new ClientHandler(socket,this))).start();
+                new Thread(()-> {
+                    ClientHandler client = new ClientHandler(socket,this);
+                    clientHandlers.add(client);
+                    client.authenticate();
+                }).start();
             }
         }catch (IOException ioException){
             throw new ServerNetworkingException("Server initializing error",ioException);
@@ -51,7 +55,7 @@ public class ChatAppServer {
     protected synchronized void  sendPrivateMessage(Message message) {
         clientHandlers.stream()
                 .filter(clientHandler ->
-                        clientHandler.isAuthenticated() &&
+                        clientHandler.getUsername().isPresent() &&
                                 clientHandler.getUsername().get().equals(message.getTarget()))
                 .forEach(clientHandler -> clientHandler.sendMessage(message));
     }
