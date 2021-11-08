@@ -12,6 +12,10 @@ public class AuthenticationService {
     public AuthenticationService(){
         userSet.add(new User("l1","p1","u1"));
         userSet.add(new User("l2","p2","u2"));
+        userSet.add(new User("l3","p3","u3"));
+        userSet.add(new User("l4","p4","u4"));
+        userSet.add(new User("l5","p5","u5"));
+        userSet.add(new User("l6","p6","u6"));
     }
     public Optional<User> findUser(AuthCredentials credentials){
         return userSet.stream().filter(

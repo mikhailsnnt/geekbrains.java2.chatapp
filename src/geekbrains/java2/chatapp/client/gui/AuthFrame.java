@@ -7,15 +7,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.function.Consumer;
 
-public class AuthFrame {
-    private JFrame frame;
+public class AuthFrame extends JFrame {
     public AuthFrame(AuthenticationPerformer performAuthentication){
         initView(performAuthentication);
     }
     private void initView(AuthenticationPerformer performAuthentication){
-        frame = new JFrame();
-        frame.setTitle("Chat-app authentication");
-        frame.setBounds(300,300,500,450);
+
+        setTitle("Chat-app authentication");
+        setBounds(300,300,500,450);
         JTextField loginTextField = new JTextField();
         JPasswordField passwordField = new JPasswordField();
         JPanel panel = new JPanel(new GridLayout(2,1));
@@ -23,21 +22,27 @@ public class AuthFrame {
         passwordField.setColumns(20);
         panel.add(loginTextField);
         panel.add(passwordField);
-        frame.add(panel);
+        add(panel);
         JButton authButton = new JButton("Log in");
         authButton.addActionListener(e -> {
             if(!loginTextField.getText().isEmpty() && passwordField.getPassword().length != 0)
                 performAuthentication.authenticate(
                         new AuthCredentials(loginTextField.getText(),String.valueOf(passwordField.getPassword())));
         });
-        frame.add(authButton, BorderLayout.SOUTH);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setVisible(true);
+        add(authButton, BorderLayout.SOUTH);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        loginTextField.addActionListener(e->passwordField.requestFocus());
+        passwordField.addActionListener(e->authButton.doClick());
+
+        pack();
+        setVisible(true);
     }
-    public void dispose(){
-        frame.setVisible(false);
-        frame.dispose();
+    public void closeView(){
+        setVisible(false);
+        dispose();
+    }
+    public void showAlert(String text){
+        JOptionPane.showMessageDialog(this,text);
     }
 
 }

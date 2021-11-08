@@ -9,6 +9,14 @@ public class Message {
     private final String fromUser;
     private final Date sendTime;
     private final String target;
+
+    public Message(String text, String fromUser) {
+        this.text = text;
+        this.fromUser = fromUser;
+        this.sendTime = new Date();
+        this.target = null;
+    }
+
     public Message(String text , String fromUser, Date sendTime){
         this.text = text;
         this.fromUser = fromUser;
@@ -40,5 +48,13 @@ public class Message {
 
     public String getTarget(){
         return target;
+    }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "text='" + text + '\'' +
+                ", fromUser='" + fromUser + '\'' +
+                '}';
     }
 }

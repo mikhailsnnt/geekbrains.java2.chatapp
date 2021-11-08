@@ -6,6 +6,7 @@ import geekbrains.java2.chatapp.dto.AuthenticationResult;
 import geekbrains.java2.chatapp.dto.Message;
 import geekbrains.java2.chatapp.client.gui.ChatFrame;
 
+import javax.swing.*;
 import java.util.Date;
 
 public class ChatGuiClient {
@@ -30,13 +31,13 @@ public class ChatGuiClient {
         if (result == AuthenticationResult.SUCCESSFULLY){
             username = connector.readUTF();
             initiateChat();
-            authFrame.dispose();
+            authFrame.closeView();
         }
         else if (result == AuthenticationResult.USER_IS_LOGGED) {
-            System.out.println(result);
+            authFrame.showAlert("User is already logged in");
         }
         else if(result == AuthenticationResult.BAD_CREDENTIALS){
-            System.out.println(result);
+            authFrame.showAlert("Bad credentials");
         }
         else if(result == AuthenticationResult.TIMEOUT) {
 
@@ -47,10 +48,12 @@ public class ChatGuiClient {
     }
     private void initiateChat(){
         chatFrame = new ChatFrame(this::sendMessage);
+        DefaultListModel<Message> messageModel = chatFrame.getMessageModel();
         new Thread(()->{
         while(true){
-            chatFrame.addMessage((Message)connector.readObject());
+            messageModel.addElement((Message) connector.readObject());
         }}).start();
     }
+
 
 }

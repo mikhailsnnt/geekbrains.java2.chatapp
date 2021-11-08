@@ -6,7 +6,7 @@ import java.awt.*;
 import java.util.function.Consumer;
 
 public class ChatFrame extends JFrame {
-    JTextArea messages;
+    MessageHolderPanel messages;
     public ChatFrame(Consumer<String> messageSender){
         setBounds(100,100,600,600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -16,17 +16,18 @@ public class ChatFrame extends JFrame {
     private void initializeViews(Consumer<String> messageSender){
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
-        messages = new JTextArea();
-        messages.setEditable(false);
+        messages = new MessageHolderPanel();
         messages.setBorder(BorderFactory.createLineBorder(Color.lightGray,3));
         panel.add(messages, BorderLayout.CENTER);
         setTitle("Chat frame");
         panel.add(new MessageSendPanel(messageSender),BorderLayout.SOUTH);
         panel.setBackground(Color.black);
         setContentPane(panel);
+
+
     }
 
-    public void addMessage(Message message){
-        messages.append("\n"+message.getText());
+    public DefaultListModel<Message> getMessageModel(){
+        return messages.getMessageModel();
     }
 }
