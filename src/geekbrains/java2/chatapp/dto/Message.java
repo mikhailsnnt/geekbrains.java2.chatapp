@@ -1,9 +1,10 @@
 package geekbrains.java2.chatapp.dto;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Optional;
 
-public class Message {
+public class Message implements Serializable {
 
     private final String text;
     private final String fromUser;
@@ -43,7 +44,7 @@ public class Message {
     }
 
     public boolean isPrivate (){
-        return target == null;
+        return target != null;
     }
 
     public String getTarget(){

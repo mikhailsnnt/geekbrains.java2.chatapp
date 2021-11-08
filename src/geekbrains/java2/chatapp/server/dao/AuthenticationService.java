@@ -5,7 +5,6 @@ import geekbrains.java2.chatapp.server.User;
 
 import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 public class AuthenticationService {
     private static final HashSet<User> userSet = new HashSet();

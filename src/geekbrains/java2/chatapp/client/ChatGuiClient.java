@@ -3,6 +3,7 @@ package geekbrains.java2.chatapp.client;
 import geekbrains.java2.chatapp.client.gui.AuthFrame;
 import geekbrains.java2.chatapp.dto.AuthCredentials;
 import geekbrains.java2.chatapp.dto.AuthenticationResult;
+import geekbrains.java2.chatapp.dto.ClientCommand;
 import geekbrains.java2.chatapp.dto.Message;
 import geekbrains.java2.chatapp.client.gui.ChatFrame;
 
@@ -43,8 +44,10 @@ public class ChatGuiClient {
 
         }
     }
-    public void sendMessage(String text) {
+    public synchronized void sendMessage(String text) {
         // Sending message asd
+        connector.sendObject(ClientCommand.message);
+        connector.sendObject(new Message(text,username));
     }
     private void initiateChat(){
         chatFrame = new ChatFrame(this::sendMessage);
