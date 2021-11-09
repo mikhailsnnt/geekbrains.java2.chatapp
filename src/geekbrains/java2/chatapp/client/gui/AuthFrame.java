@@ -1,11 +1,8 @@
 package geekbrains.java2.chatapp.client.gui;
-import geekbrains.java2.chatapp.client.AuthenticationPerformer;
+import geekbrains.java2.chatapp.client.adapter.AuthenticationPerformer;
 import geekbrains.java2.chatapp.dto.AuthCredentials;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.function.Consumer;
 
 public class AuthFrame extends JFrame {
     public AuthFrame(AuthenticationPerformer performAuthentication){

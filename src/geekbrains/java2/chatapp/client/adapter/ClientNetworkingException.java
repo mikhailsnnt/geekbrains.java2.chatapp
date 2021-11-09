@@ -1,4 +1,4 @@
-package geekbrains.java2.chatapp.client;
+package geekbrains.java2.chatapp.client.adapter;
 
 public class ClientNetworkingException extends RuntimeException{
     public ClientNetworkingException(String message) {

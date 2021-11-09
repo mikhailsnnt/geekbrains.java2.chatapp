@@ -1,4 +1,4 @@
-package geekbrains.java2.chatapp.client;
+package geekbrains.java2.chatapp.client.adapter;
 
 import java.io.*;
 import java.net.Socket;

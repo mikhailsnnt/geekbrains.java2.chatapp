@@ -1,5 +1,6 @@
 package geekbrains.java2.chatapp.client.gui;
 
+import geekbrains.java2.chatapp.client.adapter.SendPerformer;
 import geekbrains.java2.chatapp.dto.Message;
 import javax.swing.*;
 import java.awt.*;
@@ -7,13 +8,13 @@ import java.util.function.Consumer;
 
 public class ChatFrame extends JFrame {
     MessageHolderPanel messages;
-    public ChatFrame(Consumer<String> messageSender){
+    public ChatFrame(SendPerformer messageSender){
         setBounds(100,100,600,600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         initializeViews(messageSender);
         setVisible(true);
     }
-    private void initializeViews(Consumer<String> messageSender){
+    private void initializeViews(SendPerformer messageSender){
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         messages = new MessageHolderPanel();
