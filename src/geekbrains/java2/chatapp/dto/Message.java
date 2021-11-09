@@ -18,6 +18,13 @@ public class Message implements Serializable {
         this.target = null;
     }
 
+    public Message(String text, String fromUser, String target) {
+        this.text = text;
+        this.fromUser = fromUser;
+        this.target = target;
+        this.sendTime = new Date();
+    }
+
     public Message(String text , String fromUser, Date sendTime){
         this.text = text;
         this.fromUser = fromUser;

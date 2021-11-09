@@ -45,7 +45,6 @@ public class ChatGuiClient {
         }
     }
     public synchronized void sendMessage(String text) {
-        // Sending message asd
         connector.sendObject(ClientCommand.message);
         connector.sendObject(new Message(text,username));
     }

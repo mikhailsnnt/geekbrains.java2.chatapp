@@ -10,6 +10,7 @@ public class MessageHolderPanel extends JScrollPane {
     private final DefaultListModel<Message> messageModel = new DefaultListModel<>();
     public MessageHolderPanel(){
         JList<Message> messageJList = new JList<>(messageModel);
+        messageJList.setCellRenderer(new MessageRenderer());
         messageJList.setVisibleRowCount(3);
         setViewportView(messageJList);
         setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_NEVER);
