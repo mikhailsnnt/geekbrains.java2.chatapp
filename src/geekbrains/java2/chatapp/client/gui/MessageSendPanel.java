@@ -1,13 +1,12 @@
 package geekbrains.java2.chatapp.client.gui;
 
-import geekbrains.java2.chatapp.client.adapter.SendPerformer;
+import geekbrains.java2.chatapp.client.SendPerformer;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.function.Consumer;
 
 public class MessageSendPanel extends JPanel {
     private static final String allUsersText = "Всем";
@@ -25,6 +24,7 @@ public class MessageSendPanel extends JPanel {
                 if(!allUsersText.equals(targetUser.getSelectedItem()))
                     target = (String)targetUser.getSelectedItem();
                 messageSender.send(sendMessageField.getText(),target);
+                sendMessageField.setText("");
             }
         });
         add(targetUser,BorderLayout.WEST);

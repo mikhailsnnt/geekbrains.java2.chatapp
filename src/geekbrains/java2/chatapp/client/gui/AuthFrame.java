@@ -1,5 +1,5 @@
 package geekbrains.java2.chatapp.client.gui;
-import geekbrains.java2.chatapp.client.adapter.AuthenticationPerformer;
+import geekbrains.java2.chatapp.client.AuthenticationPerformer;
 import geekbrains.java2.chatapp.dto.AuthCredentials;
 import javax.swing.*;
 import java.awt.*;

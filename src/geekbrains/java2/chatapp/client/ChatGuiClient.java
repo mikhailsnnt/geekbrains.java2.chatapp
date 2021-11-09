@@ -2,10 +2,7 @@ package geekbrains.java2.chatapp.client;
 
 import geekbrains.java2.chatapp.client.adapter.ClientConnector;
 import geekbrains.java2.chatapp.client.gui.AuthFrame;
-import geekbrains.java2.chatapp.dto.AuthCredentials;
-import geekbrains.java2.chatapp.dto.AuthenticationResult;
-import geekbrains.java2.chatapp.dto.ClientCommand;
-import geekbrains.java2.chatapp.dto.Message;
+import geekbrains.java2.chatapp.dto.*;
 import geekbrains.java2.chatapp.client.gui.ChatFrame;
 
 import javax.swing.*;
@@ -31,7 +28,8 @@ public class ChatGuiClient {
         AuthenticationResult result = (AuthenticationResult) connector.readObject();
         if (result == AuthenticationResult.SUCCESSFULLY){
             username = connector.readUTF();
-            initiateChat();
+            String[] connectedUsers = (String[])connector.readObject();
+            initiateChat(connectedUsers);
             authFrame.closeView();
         }
         else if (result == AuthenticationResult.USER_IS_LOGGED) {
@@ -48,12 +46,23 @@ public class ChatGuiClient {
         connector.sendObject(ClientCommand.message);
         connector.sendObject(new Message(text,username,target));
     }
-    private void initiateChat(){
-        chatFrame = new ChatFrame(this::sendMessage);
+    private void initiateChat(String[] connectedUsers){
+        chatFrame = new ChatFrame(this::sendMessage,username);
+        for (String username :
+                connectedUsers) {
+            chatFrame.addUser(username);
+        }
+
         DefaultListModel<Message> messageModel = chatFrame.getMessageModel();
         new Thread(()->{
         while(true){
-            messageModel.addElement((Message) connector.readObject());
+            ServerCommand command = (ServerCommand) connector.readObject();
+            if(command == ServerCommand.MESSAGE)
+                messageModel.addElement((Message) connector.readObject());
+            else if (command == ServerCommand.NEW_USER)
+                chatFrame.addUser(connector.readUTF());
+            else if (command == ServerCommand.REMOVE_USER)
+                chatFrame.removeUser(connector.readUTF());
         }}).start();
     }
 

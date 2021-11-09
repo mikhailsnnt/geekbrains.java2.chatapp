@@ -1,12 +1,11 @@
 package geekbrains.java2.chatapp.server;
 
-import geekbrains.java2.chatapp.dto.AuthCredentials;
-import geekbrains.java2.chatapp.dto.AuthenticationResult;
-import geekbrains.java2.chatapp.dto.ClientCommand;
-import geekbrains.java2.chatapp.dto.Message;
+import geekbrains.java2.chatapp.dto.*;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.Optional;
 
 public class ClientHandler {
@@ -54,9 +53,23 @@ public class ClientHandler {
         }
     }
     public void authenticate(){
-        long authenticationStarted = System.currentTimeMillis();
-        while(System.currentTimeMillis() - authenticationStarted < (long)1000*AUTHENTICATE_TIMEOUT){
-             AuthCredentials credentials = (AuthCredentials) readObject();
+        setSocketTimeout(AUTHENTICATE_TIMEOUT*1000);
+        while(true){
+            AuthCredentials credentials;
+             try{
+                 credentials = (AuthCredentials) in.readObject();
+             }
+             catch (SocketTimeoutException socketTimeoutException){
+                 sendObject(AuthenticationResult.TIMEOUT);
+                 closeSession();
+                 return;
+             }
+             catch (ClassCastException | ClassNotFoundException | IOException exception){
+                 closeSession();
+                 if (! (exception instanceof EOFException ))
+                     exception.printStackTrace();
+                 return;
+             }
              if(credentials == null)
                  return;
             Optional<User> user = server.findUser(credentials);
@@ -73,11 +86,12 @@ public class ClientHandler {
             sendObject(AuthenticationResult.SUCCESSFULLY);
             sendUTF(user.get().getUsername());
             username = user.get().getUsername();
+            server.notifyClientsAboutNewUser(username);
+            sendObject(server.getUserListForNewUser(username));
+            setSocketTimeout(0);
             mainListenLoop();
             return;
         }
-        sendObject(AuthenticationResult.TIMEOUT);
-        closeSession();
 
     }
     private Object readObject(){
@@ -120,6 +134,7 @@ public class ClientHandler {
         return Optional.ofNullable(username);
     }
     public void sendMessage(Message message){
+        sendObject(ServerCommand.MESSAGE);
         sendObject(message);
     }
     public synchronized void closeSession(){
@@ -133,5 +148,23 @@ public class ClientHandler {
             exception.printStackTrace();
         }
     }
+    public synchronized void sendNewUserInfo(String login){
+        sendObject(ServerCommand.NEW_USER);
+        sendUTF(login);
+    }
+    public synchronized void sendDisconnectedUserInfo(String login){
+        sendObject(ServerCommand.REMOVE_USER);
+        sendUTF(login);
+    }
+    private void setSocketTimeout(int timeout){
+        try {
+            socket.setSoTimeout(timeout);
+        }
+        catch (SocketException exception){
+            closeSession();
+            throw new ServerNetworkingException("Exception setting soTimeout",exception);
+        }
+    }
+
 
 }

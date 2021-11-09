@@ -8,9 +8,9 @@ import java.util.ArrayList;
 
 public class MessageHolderPanel extends JScrollPane {
     private final DefaultListModel<Message> messageModel = new DefaultListModel<>();
-    public MessageHolderPanel(){
+    public MessageHolderPanel(String myUsername){
         JList<Message> messageJList = new JList<>(messageModel);
-        messageJList.setCellRenderer(new MessageRenderer());
+        messageJList.setCellRenderer(new MessageRenderer(myUsername));
         messageJList.setVisibleRowCount(3);
         setViewportView(messageJList);
         setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_NEVER);

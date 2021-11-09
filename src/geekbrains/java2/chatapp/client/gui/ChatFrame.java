@@ -1,34 +1,40 @@
 package geekbrains.java2.chatapp.client.gui;
-
-import geekbrains.java2.chatapp.client.adapter.SendPerformer;
+import geekbrains.java2.chatapp.client.SendPerformer;
 import geekbrains.java2.chatapp.dto.Message;
 import javax.swing.*;
 import java.awt.*;
-import java.util.function.Consumer;
 
 public class ChatFrame extends JFrame {
     MessageHolderPanel messages;
-    public ChatFrame(SendPerformer messageSender){
+    private MessageSendPanel messageSendPanel;
+    public ChatFrame(SendPerformer messageSender,String myUsername){
         setBounds(100,100,600,600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        initializeViews(messageSender);
+        initializeViews(messageSender,myUsername);
+        setTitle("Chat frame: "+myUsername);
         setVisible(true);
     }
-    private void initializeViews(SendPerformer messageSender){
+
+    private void initializeViews(SendPerformer messageSender,String myUsername){
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
-        messages = new MessageHolderPanel();
+        messages = new MessageHolderPanel(myUsername);
         messages.setBorder(BorderFactory.createLineBorder(Color.lightGray,3));
         panel.add(messages, BorderLayout.CENTER);
-        setTitle("Chat frame");
-        panel.add(new MessageSendPanel(messageSender),BorderLayout.SOUTH);
+        messageSendPanel = new MessageSendPanel(messageSender);
+        panel.add(messageSendPanel,BorderLayout.SOUTH);
         panel.setBackground(Color.black);
         setContentPane(panel);
 
 
     }
-
     public DefaultListModel<Message> getMessageModel(){
         return messages.getMessageModel();
+    }
+    public void addUser(String username){
+        messageSendPanel.addUser(username);
+    }
+    public void removeUser(String username){
+        messageSendPanel.removeUser(username);
     }
 }
