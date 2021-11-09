@@ -39,13 +39,16 @@ public class ClientHandler {
             ClientCommand commands  = (ClientCommand) readObject();
             if(commands == ClientCommand.message){
                 Message message = (Message) readObject();
+                if(message == null)
+                    return;
+
                 if (message.isPrivate())
                     server.sendPrivateMessage(message);
                 else
                     server.broadcastMessage(message);
             }
-            else if (commands == ClientCommand.quit){
-                server.removeClientHandler(this);
+            else if (commands == ClientCommand.quit || commands == null){
+                closeSession();
                 break;
             }
         }
@@ -54,6 +57,8 @@ public class ClientHandler {
         long authenticationStarted = System.currentTimeMillis();
         while(System.currentTimeMillis() - authenticationStarted < (long)1000*AUTHENTICATE_TIMEOUT){
              AuthCredentials credentials = (AuthCredentials) readObject();
+             if(credentials == null)
+                 return;
             Optional<User> user = server.findUser(credentials);
             if(!user.isPresent())
             {
@@ -72,11 +77,16 @@ public class ClientHandler {
             return;
         }
         sendObject(AuthenticationResult.TIMEOUT);
+        closeSession();
 
     }
     private Object readObject(){
         try{
             return in.readObject();
+        }
+        catch (EOFException e){
+            closeSession();
+            return null;
         }
         catch (IOException ioException){
             throw  new ServerNetworkingException("Client reading exception", ioException);
@@ -99,6 +109,9 @@ public class ClientHandler {
             out.writeUTF(str);
             out.flush();
         }
+        catch (EOFException exception){
+            closeSession();
+        }
         catch (IOException ioException){
             throw new ServerNetworkingException("Client sending UTF exception",ioException);
         }
@@ -108,6 +121,17 @@ public class ClientHandler {
     }
     public void sendMessage(Message message){
         sendObject(message);
+    }
+    public synchronized void closeSession(){
+        try{
+            if(!socket.isClosed())
+                socket.close();
+            in.close();
+            out.close();
+            server.removeClientHandler(this);
+        }catch (IOException exception){
+            exception.printStackTrace();
+        }
     }
 
 }
