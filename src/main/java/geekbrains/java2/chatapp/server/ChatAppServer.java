@@ -1,7 +1,8 @@
 package geekbrains.java2.chatapp.server;
 
-import geekbrains.java2.chatapp.dto.AuthCredentials;
-import geekbrains.java2.chatapp.dto.Message;
+
+import geekbrains.java2.chatapp.dto.*;
+import geekbrains.java2.chatapp.server.dao.DAOException;
 import geekbrains.java2.chatapp.server.dao.DatabaseService;
 
 import java.io.IOException;
@@ -18,8 +19,14 @@ public class ChatAppServer {
     public static void main(String[] args) {
         new ChatAppServer();
     }
+    private static final String dbConnectionURL = "jdbc:mariadb://192.168.1.47:3306/ChatApp?user=sainnt&password=mask";
     public ChatAppServer (){
-        authService = new DatabaseService();
+        try {
+            authService = new DatabaseService(dbConnectionURL);
+        }catch (DAOException initEx){
+            throw new RuntimeException(initEx);
+        }
+
         try {
             ServerSocket serverSocket = new ServerSocket(PORT);
             while (true){
@@ -52,7 +59,12 @@ public class ChatAppServer {
     }
 
     public Optional<User> findUser(AuthCredentials credentials) {
-        return authService.findUser(credentials);
+        try {
+            return authService.findUser(credentials);
+        }
+        catch (DAOException exception){
+            throw new RuntimeException(exception);
+        }
     }
 
     protected synchronized void broadcastMessage(Message message) {

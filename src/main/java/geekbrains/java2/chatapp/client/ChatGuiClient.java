@@ -39,6 +39,7 @@ public class ChatGuiClient {
             authFrame.showAlert("Bad credentials");
         }
         else if(result == AuthenticationResult.TIMEOUT) {
+            authFrame.showAlert("Authentication timeout");
 
         }
     }
