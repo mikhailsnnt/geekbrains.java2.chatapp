@@ -14,9 +14,8 @@ public class MessageSendPanel extends JPanel {
     public MessageSendPanel(SendPerformer messageSender){
         setLayout(new BorderLayout());
         JButton sendButton = new JButton();
-        JTextField sendMessageField = new JTextField() ;
+        JTextArea sendMessageField = new JTextArea() ;
         targetUser = new JComboBox<>(new String[]{allUsersText});
-        sendMessageField.addActionListener(event-> sendButton.doClick());
         sendButton.addActionListener(event->{
             if(!sendMessageField.getText().isEmpty())
             {

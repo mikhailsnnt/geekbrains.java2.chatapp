@@ -2,7 +2,7 @@ package geekbrains.java2.chatapp.server;
 
 import geekbrains.java2.chatapp.dto.AuthCredentials;
 import geekbrains.java2.chatapp.dto.Message;
-import geekbrains.java2.chatapp.server.dao.AuthenticationService;
+import geekbrains.java2.chatapp.server.dao.DatabaseService;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -12,14 +12,14 @@ import java.util.Optional;
 import java.util.Set;
 
 public class ChatAppServer {
-    private final AuthenticationService authService;
+    private final DatabaseService authService;
     private final Set<ClientHandler> clientHandlers = new HashSet<>();
     private static final int PORT = 6009;
     public static void main(String[] args) {
         new ChatAppServer();
     }
     public ChatAppServer (){
-        authService = new AuthenticationService();
+        authService = new DatabaseService();
         try {
             ServerSocket serverSocket = new ServerSocket(PORT);
             while (true){
