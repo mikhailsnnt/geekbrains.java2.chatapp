@@ -6,6 +6,7 @@ import geekbrains.java2.chatapp.dto.*;
 import geekbrains.java2.chatapp.client.gui.ChatFrame;
 
 import javax.swing.*;
+import java.util.List;
 
 public class ChatGuiClient {
     private final AuthFrame authFrame;
@@ -29,7 +30,8 @@ public class ChatGuiClient {
         if (result == AuthenticationResult.SUCCESSFULLY){
             username = connector.readUTF();
             String[] connectedUsers = (String[])connector.readObject();
-            initiateChat(connectedUsers);
+            List<Message> messageHistory = (List<Message>) connector.readObject();
+            initiateChat(connectedUsers,messageHistory);
             authFrame.closeView();
         }
         else if (result == AuthenticationResult.USER_IS_LOGGED) {
@@ -47,14 +49,17 @@ public class ChatGuiClient {
         connector.sendObject(ClientCommand.message);
         connector.sendObject(new Message(text,username,target));
     }
-    private void initiateChat(String[] connectedUsers){
+    private void initiateChat(String[] connectedUsers, List<Message> messageHistory){
         chatFrame = new ChatFrame(this::sendMessage,username);
         for (String username :
                 connectedUsers) {
             chatFrame.addUser(username);
         }
-
         DefaultListModel<Message> messageModel = chatFrame.getMessageModel();
+        for (Message message :
+                messageHistory) {
+            messageModel.addElement(message);
+        }
         new Thread(()->{
         while(true){
             ServerCommand command = (ServerCommand) connector.readObject();

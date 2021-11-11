@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -68,12 +69,24 @@ public class ChatAppServer {
     }
 
     protected synchronized void broadcastMessage(Message message) {
+        try{
+        authService.writeMessage(message);}
+        catch (DAOException exception)
+        {
+            throw new RuntimeException(exception);
+        }
         clientHandlers.stream()
                 .filter(ClientHandler::isAuthenticated)
                 .forEach(clientHandler -> clientHandler.sendMessage(message));
     }
 
     protected synchronized void  sendPrivateMessage(Message message) {
+        try{
+            authService.writeMessage(message);}
+        catch (DAOException exception)
+        {
+            throw new RuntimeException(exception);
+        }
         clientHandlers.stream()
                 .filter(clientHandler ->
                         clientHandler.getUsername().isPresent() && (
@@ -94,5 +107,14 @@ public class ChatAppServer {
                 c.getUsername().isPresent() &&
                 !c.getUsername().get().equals(login)).map(clientHandler->clientHandler.getUsername().get())
                 .toArray(String[]::new);
+    }
+
+    public List<Message> getMessageHistoryForNewUser(String username){
+        try{
+            return authService.getMessagesWithUser(username);
+        }
+        catch (DAOException exception){
+            throw new RuntimeException(exception);
+        }
     }
 }

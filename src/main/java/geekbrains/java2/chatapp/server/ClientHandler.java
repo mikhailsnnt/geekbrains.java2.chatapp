@@ -7,6 +7,7 @@ import java.net.Socket;
 
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.List;
 import java.util.Optional;
 
 public class ClientHandler {
@@ -87,14 +88,17 @@ public class ClientHandler {
             sendObject(AuthenticationResult.SUCCESSFULLY);
             sendUTF(user.get().getUsername());
             username = user.get().getUsername();
-            server.notifyClientsAboutNewUser(username);
             sendObject(server.getUserListForNewUser(username));
+            sendObject(server.getMessageHistoryForNewUser(username));
+            server.notifyClientsAboutNewUser(username);
             setSocketTimeout(0);
             mainListenLoop();
             return;
         }
 
     }
+
+
     private Object readObject(){
         try{
             return in.readObject();
