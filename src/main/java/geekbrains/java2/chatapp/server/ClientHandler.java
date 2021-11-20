@@ -16,6 +16,11 @@ public class ClientHandler {
     private final ObjectInputStream in;
     private final ObjectOutputStream out;
     private String username;
+    private Integer userId;
+
+    public Optional<Integer> getUserId() {
+        return Optional.ofNullable(userId);
+    }
 
     public boolean isAuthenticated() {
         return username != null;
@@ -47,6 +52,13 @@ public class ClientHandler {
                     server.sendPrivateMessage(message);
                 else
                     server.broadcastMessage(message);
+            }
+            else if (commands == ClientCommand.request_user){
+                int userId = (Integer) readObject();
+                String username = server.getUsernameById(userId);
+                sendObject(ServerCommand.USER_ID_RESPONSE);
+                sendObject(userId);
+                sendObject(username);
             }
             else if (commands == ClientCommand.quit || commands == null){
                 closeSession();
@@ -86,11 +98,13 @@ public class ClientHandler {
                 continue;
             }
             sendObject(AuthenticationResult.SUCCESSFULLY);
-            sendUTF(user.get().getUsername());
+            userId = user.get().getId();
             username = user.get().getUsername();
-            sendObject(server.getUserListForNewUser(username));
-            sendObject(server.getMessageHistoryForNewUser(username));
-            server.notifyClientsAboutNewUser(username);
+            sendObject(userId);
+            sendUTF(username);
+            sendObject(server.getUserListForNewUser());
+            sendObject(server.getMessageHistoryForNewUser(userId));
+            server.notifyClientsAboutNewUser(userId,username);
             setSocketTimeout(0);
             mainListenLoop();
             return;
@@ -153,9 +167,10 @@ public class ClientHandler {
             exception.printStackTrace();
         }
     }
-    public synchronized void sendNewUserInfo(String login){
+    public synchronized void sendNewUserInfo(Integer userId , String username){
         sendObject(ServerCommand.NEW_USER);
-        sendUTF(login);
+        sendObject(userId);
+        sendUTF(username);
     }
     public synchronized void sendDisconnectedUserInfo(String login){
         sendObject(ServerCommand.REMOVE_USER);
