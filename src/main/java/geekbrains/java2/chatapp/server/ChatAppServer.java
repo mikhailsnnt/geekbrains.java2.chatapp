@@ -122,4 +122,18 @@ public class ChatAppServer {
             throw new RuntimeException(exception);
         }
     }
+
+    public UsernameChangeResult updateUsername(int userId, String username){
+        try{
+            String oldUsername = authService.getUsernameById(userId);
+            if(oldUsername.equals(username))
+                return UsernameChangeResult.new_username_equals_to_old;
+            if(authService.updateUsername(userId,username))
+                return  UsernameChangeResult.successfully;
+            return UsernameChangeResult.username_occupied;
+        }
+        catch (DAOException exception){
+            throw new RuntimeException(exception);
+        }
+    }
 }

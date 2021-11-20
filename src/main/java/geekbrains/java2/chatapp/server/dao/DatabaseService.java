@@ -2,6 +2,7 @@ package geekbrains.java2.chatapp.server.dao;
 
 import geekbrains.java2.chatapp.dto.AuthCredentials;
 import geekbrains.java2.chatapp.dto.Message;
+import geekbrains.java2.chatapp.dto.UsernameChangeResult;
 import geekbrains.java2.chatapp.server.User;
 import java.sql.*;
 import java.util.ArrayList;
@@ -92,6 +93,23 @@ public class DatabaseService {
         }
         catch (SQLException exception) {
             throw new DAOException("Get username by id exception",exception);
+        }
+    }
+
+    public boolean updateUsername(int userId, String username) throws DAOException{
+        try(Connection connection = DriverManager.getConnection(connectionURL)){
+            try(PreparedStatement preparedStatement
+                        = connection.prepareStatement("UPDATE Users SET username = ? WHERE id = ?")){
+                preparedStatement.setString(1,username);
+                preparedStatement.setInt(2,userId);
+                return preparedStatement.executeUpdate() == 1;
+            }
+
+        }catch (SQLIntegrityConstraintViolationException exception){
+            return  false;
+        }
+        catch (SQLException exception){
+            throw new DAOException("Update username exception",exception);
         }
     }
 }
