@@ -4,6 +4,7 @@ import geekbrains.java2.chatapp.dto.Message;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MessageLogger {
     private final File logFile;
@@ -20,7 +21,7 @@ public class MessageLogger {
             throw  new RuntimeException(exception);
         }
     }
-    public ArrayList<Message> readMessages(int limit){
+    public List<Message> readMessages(int limit){
         ArrayList<Message> messages =  new ArrayList<>();
         if(limit == -1)
             limit = Integer.MAX_VALUE;
