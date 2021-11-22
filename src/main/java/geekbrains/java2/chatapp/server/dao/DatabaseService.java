@@ -48,8 +48,10 @@ public class DatabaseService {
             {
                 statement.setString(1,message.getText());
                 statement.setInt(2,message.getFromUser());
-                if(message.getTarget() != null)
-                     statement.setInt(3,message.getTarget());
+                if(message.getTarget() == null)
+                    statement.setNull(3, Types.INTEGER);
+                else
+                    statement.setInt(3,message.getTarget());
                 statement.setTimestamp(4,new Timestamp(message.getSendTime().getTime()));
                 statement.executeUpdate();
             }
@@ -82,13 +84,15 @@ public class DatabaseService {
         }
     }
 
-    public String getUsernameById(int userId) throws DAOException {
+    public Optional<String> getUsernameById(int userId) throws DAOException {
         try(Connection connection = DriverManager.getConnection(connectionURL)){
             try(PreparedStatement preparedStatement = connection.prepareStatement("SELECT username FROM Users WHERE id = ?"))
             {
                 preparedStatement.setInt(1,userId);
                 ResultSet resultSet = preparedStatement.executeQuery();
-                return  resultSet.getString("username");
+                if(!resultSet.next())
+                    return Optional.empty();
+                return  Optional.of( resultSet.getString("username"));
             }
         }
         catch (SQLException exception) {

@@ -27,7 +27,7 @@ public class MessageRenderer  implements ListCellRenderer<Message> {
         String fromUser= client.getUsernameById( value.getFromUser());
         if(fromUser.equals(myUsername)){
             String myMessageTitle ;
-            if(value.getTarget() == null)
+            if(value.getTarget() == 0)
                 myMessageTitle = "Всем";
             else
                 myMessageTitle = client.getUsernameById(value.getTarget());

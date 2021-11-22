@@ -42,10 +42,7 @@ public class ChatAppServer {
     }
 
     public boolean userIsLoggedIn(User user){
-        return clientHandlers.stream().anyMatch(
-                clientHandler
-                        -> clientHandler.getUsername().isPresent() &&
-                        clientHandler.getUsername().get().equals(user.getUsername()));
+        return connectedUsers.containsKey(user.getId());
     }
 
     public synchronized void notifyClientsAboutNewUser(Integer userId, String username){
@@ -88,9 +85,9 @@ public class ChatAppServer {
         }
         clientHandlers.stream()
                 .filter(clientHandler ->
-                        clientHandler.getUsername().isPresent() && (
-                                clientHandler.getUsername().get().equals(message.getTarget()) ||
-                                clientHandler.getUsername().get().equals(message.getFromUser())))
+                        clientHandler.getUserId().isPresent() && (
+                                clientHandler.getUserId().get().equals(message.getTarget()) ||
+                                clientHandler.getUserId().get().equals(message.getFromUser())))
                 .forEach(clientHandler -> clientHandler.sendMessage(message));
     }
 
@@ -114,7 +111,7 @@ public class ChatAppServer {
         }
     }
 
-    public String getUsernameById(int userId) {
+    public Optional<String> getUsernameById(int userId) {
         try{
             return authService.getUsernameById(userId);
         }
@@ -125,8 +122,8 @@ public class ChatAppServer {
 
     public UsernameChangeResult updateUsername(int userId, String username){
         try{
-            String oldUsername = authService.getUsernameById(userId);
-            if(oldUsername.equals(username))
+            Optional<String> oldUsername = authService.getUsernameById(userId);
+            if(oldUsername.get().equals(username))
                 return UsernameChangeResult.new_username_equals_to_old;
             if(authService.updateUsername(userId,username))
                 return  UsernameChangeResult.successfully;

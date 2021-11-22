@@ -6,10 +6,7 @@ import geekbrains.java2.chatapp.dto.*;
 import geekbrains.java2.chatapp.client.gui.ChatFrame;
 
 import javax.swing.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ChatGuiClient {
     private final AuthFrame authFrame;
@@ -20,6 +17,7 @@ public class ChatGuiClient {
     private static final int PORT = 6009;
     private HashMap<Integer, String> connectedUsers;
     private int myUserId;
+    MessageLogger logger = new MessageLogger();
     public static void main(String[] args) {
         new ChatGuiClient();
     }
@@ -29,6 +27,7 @@ public class ChatGuiClient {
         authFrame = new AuthFrame(this::performAuth);
     }
     private void performAuth(AuthCredentials authCredentials){
+        logger.writeMessage(new Message("Hello logger",1));
         connector.sendObject(authCredentials);
         AuthenticationResult result = (AuthenticationResult) connector.readObject();
         if (result == AuthenticationResult.SUCCESSFULLY){
@@ -36,6 +35,7 @@ public class ChatGuiClient {
             username = connector.readUTF();
             connectedUsers = (HashMap<Integer,String>)connector.readObject();
             List<Message> messageHistory = (List<Message>) connector.readObject();
+            messageHistory = logger.readMessages(100);
             initiateChat(connectedUsers,messageHistory);
             authFrame.closeView();
         }
@@ -51,13 +51,13 @@ public class ChatGuiClient {
         }
     }
     public synchronized void sendMessage(String text, String target) {
-        Integer targetId = null;
+        int targetId = 0;
         if(target != null)
             targetId = getUserIdByUsername(target);
         connector.sendObject(ClientCommand.message);
         connector.sendObject(new Message(text,myUserId,targetId));
     }
-    private void initiateChat(HashMap<Integer, String> connectedUsers, List<Message> messageHistory){
+    private synchronized void initiateChat(HashMap<Integer, String> connectedUsers, List<Message> messageHistory){
         chatFrame = new ChatFrame(this,this::sendMessage,username);
         for (String username :
                 connectedUsers.values()) {
@@ -78,7 +78,10 @@ public class ChatGuiClient {
             else if (command == ServerCommand.REMOVE_USER)
                 chatFrame.removeUser(readUserInfo());
             else if(command == ServerCommand.USER_ID_RESPONSE){
-                readUserInfo();
+                synchronized (connectedUsers){
+                    readUserInfo();
+                    connectedUsers.notify();
+                }
             }
         }}).start();
     }
@@ -86,6 +89,7 @@ public class ChatGuiClient {
     private String readUserInfo(){
         int userId = (Integer)connector.readObject();
         String username = connector.readUTF();
+
         connectedUsers.put(userId,username);
         return username;
     }
@@ -99,16 +103,17 @@ public class ChatGuiClient {
         }
         return null;
     }
-    public String getUsernameById(int id){
-
-        while (true){
-            if(connectedUsers.containsKey(id))
-                return connectedUsers.get(id);
-            requestUserById(id);
-            try{
-                Thread.sleep(500);
-            }catch (InterruptedException exception){
-                exception.printStackTrace();
+    public synchronized String getUsernameById(int id){
+        synchronized (connectedUsers) {
+            while (true) {
+                if (connectedUsers.containsKey(id))
+                    return connectedUsers.get(id);
+                requestUserById(id);
+                try {
+                    connectedUsers.wait();
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
+                }
             }
         }
     }

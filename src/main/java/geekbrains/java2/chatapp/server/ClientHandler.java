@@ -55,10 +55,10 @@ public class ClientHandler {
             }
             else if (commands == ClientCommand.request_user){
                 int userId = (Integer) readObject();
-                String username = server.getUsernameById(userId);
+                Optional<String> username = server.getUsernameById(userId);
                 sendObject(ServerCommand.USER_ID_RESPONSE);
                 sendObject(userId);
-                sendObject(username);
+                sendUTF(username.get());
             }
             else if (commands == ClientCommand.quit || commands == null){
                 closeSession();

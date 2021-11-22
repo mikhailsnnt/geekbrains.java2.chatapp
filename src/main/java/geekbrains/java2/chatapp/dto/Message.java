@@ -8,20 +8,20 @@ public class Message implements Serializable {
     private final String text;
     private final int fromUser;
     private final Date sendTime;
-    private final Integer target;
+    private final int target;
 
     public Message(String text, int fromUser) {
-        this(text,fromUser,new Date(),null);
+        this(text,fromUser,new Date(),0);
     }
 
-    public Message(String text, Integer fromUser, Integer target) {
+    public Message(String text, int fromUser, int target) {
         this(text,fromUser,new Date(),target);
     }
 
-    public Message(String text , Integer fromUser, Date sendTime){
-        this(text,fromUser,sendTime,null);
+    public Message(String text , int fromUser, Date sendTime){
+        this(text,fromUser,sendTime,0);
     }
-    public Message(String text , int fromUser, Date sendTime, Integer target){
+    public Message(String text , int fromUser, Date sendTime, int target){
         this.text = text;
         this.fromUser = fromUser;
         this.sendTime = sendTime;
@@ -41,7 +41,7 @@ public class Message implements Serializable {
     }
 
     public boolean isPrivate (){
-        return target != null;
+        return target != 0;
     }
 
     public Integer getTarget(){
