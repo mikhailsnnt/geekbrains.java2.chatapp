@@ -6,7 +6,7 @@ import geekbrains.java2.chatapp.dto.*;
 import geekbrains.java2.chatapp.client.gui.ChatFrame;
 
 import javax.swing.*;
-import java.util.List;
+import java.util.*;
 
 public class ChatGuiClient {
     private final AuthFrame authFrame;
@@ -15,7 +15,9 @@ public class ChatGuiClient {
     private final ClientConnector connector;
     private static final String HOST = "127.0.0.1";
     private static final int PORT = 6009;
-
+    private HashMap<Integer, String> connectedUsers;
+    private int myUserId;
+    MessageLogger logger = new MessageLogger();
     public static void main(String[] args) {
         new ChatGuiClient();
     }
@@ -25,12 +27,15 @@ public class ChatGuiClient {
         authFrame = new AuthFrame(this::performAuth);
     }
     private void performAuth(AuthCredentials authCredentials){
+        logger.writeMessage(new Message("Hello logger",1));
         connector.sendObject(authCredentials);
         AuthenticationResult result = (AuthenticationResult) connector.readObject();
         if (result == AuthenticationResult.SUCCESSFULLY){
+            myUserId = (Integer)connector.readObject();
             username = connector.readUTF();
-            String[] connectedUsers = (String[])connector.readObject();
+            connectedUsers = (HashMap<Integer,String>)connector.readObject();
             List<Message> messageHistory = (List<Message>) connector.readObject();
+            messageHistory = logger.readMessages(100);
             initiateChat(connectedUsers,messageHistory);
             authFrame.closeView();
         }
@@ -46,13 +51,16 @@ public class ChatGuiClient {
         }
     }
     public synchronized void sendMessage(String text, String target) {
+        int targetId = 0;
+        if(target != null)
+            targetId = getUserIdByUsername(target);
         connector.sendObject(ClientCommand.message);
-        connector.sendObject(new Message(text,username,target));
+        connector.sendObject(new Message(text,myUserId,targetId));
     }
-    private void initiateChat(String[] connectedUsers, List<Message> messageHistory){
-        chatFrame = new ChatFrame(this::sendMessage,username);
+    private synchronized void initiateChat(HashMap<Integer, String> connectedUsers, List<Message> messageHistory){
+        chatFrame = new ChatFrame(this,this::sendMessage,username);
         for (String username :
-                connectedUsers) {
+                connectedUsers.values()) {
             chatFrame.addUser(username);
         }
         DefaultListModel<Message> messageModel = chatFrame.getMessageModel();
@@ -66,11 +74,51 @@ public class ChatGuiClient {
             if(command == ServerCommand.MESSAGE)
                 messageModel.addElement((Message) connector.readObject());
             else if (command == ServerCommand.NEW_USER)
-                chatFrame.addUser(connector.readUTF());
+                chatFrame.addUser(readUserInfo());
             else if (command == ServerCommand.REMOVE_USER)
-                chatFrame.removeUser(connector.readUTF());
+                chatFrame.removeUser(readUserInfo());
+            else if(command == ServerCommand.USER_ID_RESPONSE){
+                synchronized (connectedUsers){
+                    readUserInfo();
+                    connectedUsers.notify();
+                }
+            }
         }}).start();
     }
 
+    private String readUserInfo(){
+        int userId = (Integer)connector.readObject();
+        String username = connector.readUTF();
 
+        connectedUsers.put(userId,username);
+        return username;
+    }
+
+    private Integer getUserIdByUsername(String username)
+    {
+        for (Map.Entry<Integer, String> entry :
+                connectedUsers.entrySet()) {
+            if(entry.getValue().equals(username))
+                return entry.getKey();
+        }
+        return null;
+    }
+    public synchronized String getUsernameById(int id){
+        synchronized (connectedUsers) {
+            while (true) {
+                if (connectedUsers.containsKey(id))
+                    return connectedUsers.get(id);
+                requestUserById(id);
+                try {
+                    connectedUsers.wait();
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
+                }
+            }
+        }
+    }
+    private void requestUserById(int id){
+        connector.sendObject(ClientCommand.request_user);
+        connector.sendObject(id);
+    }
 }

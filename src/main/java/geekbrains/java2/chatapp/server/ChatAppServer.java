@@ -8,15 +8,13 @@ import geekbrains.java2.chatapp.server.dao.DatabaseService;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class ChatAppServer {
     private final DatabaseService authService;
     private final Set<ClientHandler> clientHandlers = new HashSet<>();
     private static final int PORT = 6009;
+    private final HashMap<Integer,String> connectedUsers = new HashMap<>();
     public static void main(String[] args) {
         new ChatAppServer();
     }
@@ -44,15 +42,13 @@ public class ChatAppServer {
     }
 
     public boolean userIsLoggedIn(User user){
-        return clientHandlers.stream().anyMatch(
-                clientHandler
-                        -> clientHandler.getUsername().isPresent() &&
-                        clientHandler.getUsername().get().equals(user.getUsername()));
+        return connectedUsers.containsKey(user.getId());
     }
 
-    public synchronized void notifyClientsAboutNewUser(String username){
+    public synchronized void notifyClientsAboutNewUser(Integer userId, String username){
         clientHandlers.stream()
-                .filter(e->e.getUsername().isPresent() && !e.getUsername().get().equals(username)).forEach(client->client.sendNewUserInfo(username));
+                .filter(e->e.getUserId().isPresent() && !e.getUserId().get().equals(userId))
+                .forEach(client->client.sendNewUserInfo(userId,username));
     }
     public synchronized void notifyClientsAboutDisconnectedUser(String username){
         clientHandlers.stream()
@@ -89,9 +85,9 @@ public class ChatAppServer {
         }
         clientHandlers.stream()
                 .filter(clientHandler ->
-                        clientHandler.getUsername().isPresent() && (
-                                clientHandler.getUsername().get().equals(message.getTarget()) ||
-                                clientHandler.getUsername().get().equals(message.getFromUser())))
+                        clientHandler.getUserId().isPresent() && (
+                                clientHandler.getUserId().get().equals(message.getTarget()) ||
+                                clientHandler.getUserId().get().equals(message.getFromUser())))
                 .forEach(clientHandler -> clientHandler.sendMessage(message));
     }
 
@@ -102,16 +98,36 @@ public class ChatAppServer {
 
     }
 
-    public String[] getUserListForNewUser(String login) {
-        return clientHandlers.stream().filter(c->
-                c.getUsername().isPresent() &&
-                !c.getUsername().get().equals(login)).map(clientHandler->clientHandler.getUsername().get())
-                .toArray(String[]::new);
+    public HashMap<Integer, String> getUserListForNewUser() {
+        return connectedUsers;
     }
 
-    public List<Message> getMessageHistoryForNewUser(String username){
+    public List<Message> getMessageHistoryForNewUser(Integer userId){
         try{
-            return authService.getMessagesWithUser(username);
+            return authService.getMessagesWithUser(userId);
+        }
+        catch (DAOException exception){
+            throw new RuntimeException(exception);
+        }
+    }
+
+    public Optional<String> getUsernameById(int userId) {
+        try{
+            return authService.getUsernameById(userId);
+        }
+        catch (DAOException exception){
+            throw new RuntimeException(exception);
+        }
+    }
+
+    public UsernameChangeResult updateUsername(int userId, String username){
+        try{
+            Optional<String> oldUsername = authService.getUsernameById(userId);
+            if(oldUsername.get().equals(username))
+                return UsernameChangeResult.new_username_equals_to_old;
+            if(authService.updateUsername(userId,username))
+                return  UsernameChangeResult.successfully;
+            return UsernameChangeResult.username_occupied;
         }
         catch (DAOException exception){
             throw new RuntimeException(exception);

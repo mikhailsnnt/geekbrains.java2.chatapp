@@ -1,5 +1,6 @@
 package geekbrains.java2.chatapp.client.gui;
 
+import geekbrains.java2.chatapp.client.ChatGuiClient;
 import geekbrains.java2.chatapp.dto.Message;
 
 import javax.swing.*;
@@ -11,8 +12,9 @@ public class MessageRenderer  implements ListCellRenderer<Message> {
     private String myUsername;
     private static final Color myMessagesColor = new Color(173,216,230);
     private static final Color privateMessagesColor = new Color(255,255,237);
-
-    public MessageRenderer(String myUsername) {
+    private final ChatGuiClient client;
+    public MessageRenderer(ChatGuiClient client, String myUsername) {
+        this.client = client;
         this.myUsername = myUsername;
     }
 
@@ -22,11 +24,13 @@ public class MessageRenderer  implements ListCellRenderer<Message> {
         panel.setLayout(new BorderLayout());
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BorderLayout());
-        String fromUser= value.getFromUser();
+        String fromUser= client.getUsernameById( value.getFromUser());
         if(fromUser.equals(myUsername)){
-            String myMessageTitle = value.getTarget();
-            if(myMessageTitle == null)
+            String myMessageTitle ;
+            if(value.getTarget() == 0)
                 myMessageTitle = "Всем";
+            else
+                myMessageTitle = client.getUsernameById(value.getTarget());
             leftPanel.add(new JLabel(myMessageTitle),BorderLayout.CENTER);
         }
         else
