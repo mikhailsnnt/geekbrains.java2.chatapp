@@ -10,7 +10,7 @@ import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Optional;
 
-public class ClientHandler {
+public class ClientHandler implements Runnable {
     private static final int AUTHENTICATE_TIMEOUT = 120; //Seconds
     private final Socket socket;
     private final ObjectInputStream in;
@@ -61,12 +61,11 @@ public class ClientHandler {
                 sendUTF(username.get());
             }
             else if (commands == ClientCommand.quit || commands == null){
-                closeSession();
                 break;
             }
         }
     }
-    public void authenticate(){
+    public boolean authenticate(){
         setSocketTimeout(AUTHENTICATE_TIMEOUT*1000);
         while(true){
             AuthCredentials credentials;
@@ -75,17 +74,15 @@ public class ClientHandler {
              }
              catch (SocketTimeoutException socketTimeoutException){
                  sendObject(AuthenticationResult.TIMEOUT);
-                 closeSession();
-                 return;
+                 return false;
              }
              catch (ClassCastException | ClassNotFoundException | IOException exception){
-                 closeSession();
                  if (! (exception instanceof EOFException ))
                      exception.printStackTrace();
-                 return;
+                 return false;
              }
              if(credentials == null)
-                 return;
+                 return false;
             Optional<User> user = server.findUser(credentials);
             if(!user.isPresent())
             {
@@ -107,7 +104,7 @@ public class ClientHandler {
             server.notifyClientsAboutNewUser(userId,username);
             setSocketTimeout(0);
             mainListenLoop();
-            return;
+            return true;
         }
 
     }
@@ -187,4 +184,11 @@ public class ClientHandler {
     }
 
 
+    @Override
+    public void run() {
+        if (authenticate())
+            mainListenLoop();
+        else
+            closeSession();
+    }
 }
