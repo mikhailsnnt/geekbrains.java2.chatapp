@@ -9,9 +9,13 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ChatAppServer {
+    private final int clientsLimit = 30;
     private final DatabaseService authService;
+    private final ExecutorService clientPool;
     private final Set<ClientHandler> clientHandlers = new HashSet<>();
     private static final int PORT = 6009;
     private final HashMap<Integer,String> connectedUsers = new HashMap<>();
@@ -25,16 +29,16 @@ public class ChatAppServer {
         }catch (DAOException initEx){
             throw new RuntimeException(initEx);
         }
+        clientPool = Executors.newFixedThreadPool(clientsLimit);
+
 
         try {
             ServerSocket serverSocket = new ServerSocket(PORT);
             while (true){
                 Socket socket = serverSocket.accept();
-                new Thread(()-> {
-                    ClientHandler client = new ClientHandler(socket,this);
-                    clientHandlers.add(client);
-                    client.authenticate();
-                }).start();
+                ClientHandler clientHandler = new ClientHandler(socket, this);
+                clientPool.execute(clientHandler);
+                clientHandlers.add(clientHandler);
             }
         }catch (IOException ioException){
             throw new ServerNetworkingException("Server initializing error",ioException);
