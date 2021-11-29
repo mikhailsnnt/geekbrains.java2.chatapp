@@ -78,7 +78,7 @@ public class ClientHandler implements Runnable {
              }
              catch (ClassCastException | ClassNotFoundException | IOException exception){
                  if (! (exception instanceof EOFException ))
-                     exception.printStackTrace();
+                     server.logException(exception);
                  return false;
              }
              if(credentials == null)
@@ -119,9 +119,11 @@ public class ClientHandler implements Runnable {
             return null;
         }
         catch (IOException ioException){
+            server.logException(ioException);
             throw  new ServerNetworkingException("Client reading exception", ioException);
         }
         catch (ClassNotFoundException classNotFoundException){
+            server.logException(classNotFoundException);
             throw  new RuntimeException(classNotFoundException);
         }
     }
@@ -131,6 +133,7 @@ public class ClientHandler implements Runnable {
             out.flush();
         }
         catch (IOException ioException){
+            server.logException(ioException);
             throw new ServerNetworkingException("Client sending exception" , ioException);
         }
     }
@@ -143,6 +146,7 @@ public class ClientHandler implements Runnable {
             closeSession();
         }
         catch (IOException ioException){
+            server.logException(ioException);
             throw new ServerNetworkingException("Client sending UTF exception",ioException);
         }
     }
@@ -161,6 +165,7 @@ public class ClientHandler implements Runnable {
             out.close();
             server.removeClientHandler(this);
         }catch (IOException exception){
+            server.logException(exception);
             exception.printStackTrace();
         }
     }
@@ -178,6 +183,7 @@ public class ClientHandler implements Runnable {
             socket.setSoTimeout(timeout);
         }
         catch (SocketException exception){
+            server.logException(exception);
             closeSession();
             throw new ServerNetworkingException("Exception setting soTimeout",exception);
         }

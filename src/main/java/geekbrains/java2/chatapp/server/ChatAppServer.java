@@ -4,6 +4,8 @@ package geekbrains.java2.chatapp.server;
 import geekbrains.java2.chatapp.dto.*;
 import geekbrains.java2.chatapp.server.dao.DAOException;
 import geekbrains.java2.chatapp.server.dao.DatabaseService;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -13,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ChatAppServer {
+    private static final Logger logger = LogManager.getLogger();
     private final int clientsLimit = 30;
     private final DatabaseService authService;
     private final ExecutorService clientPool;
@@ -24,11 +27,15 @@ public class ChatAppServer {
     }
     private static final String dbConnectionURL = "jdbc:mariadb://192.168.1.47:3306/ChatApp?user=sainnt&password=mask";
     public ChatAppServer (){
+        logInfo("Starting chatapp server...");
         try {
             authService = new DatabaseService(dbConnectionURL);
         }catch (DAOException initEx){
+            logException(initEx);
             throw new RuntimeException(initEx);
         }
+
+        logInfo("Successfully connected to DB");
         clientPool = Executors.newFixedThreadPool(clientsLimit);
 
 
@@ -36,11 +43,13 @@ public class ChatAppServer {
             ServerSocket serverSocket = new ServerSocket(PORT);
             while (true){
                 Socket socket = serverSocket.accept();
+                logger.info("Client accepted");
                 ClientHandler clientHandler = new ClientHandler(socket, this);
                 clientPool.execute(clientHandler);
                 clientHandlers.add(clientHandler);
             }
         }catch (IOException ioException){
+            logException(ioException);
             throw new ServerNetworkingException("Server initializing error",ioException);
         }
     }
@@ -64,6 +73,7 @@ public class ChatAppServer {
             return authService.findUser(credentials);
         }
         catch (DAOException exception){
+            logException(exception);
             throw new RuntimeException(exception);
         }
     }
@@ -73,6 +83,7 @@ public class ChatAppServer {
         authService.writeMessage(message);}
         catch (DAOException exception)
         {
+            logException(exception);
             throw new RuntimeException(exception);
         }
         clientHandlers.stream()
@@ -85,6 +96,7 @@ public class ChatAppServer {
             authService.writeMessage(message);}
         catch (DAOException exception)
         {
+            logException(exception);
             throw new RuntimeException(exception);
         }
         clientHandlers.stream()
@@ -120,6 +132,7 @@ public class ChatAppServer {
             return authService.getUsernameById(userId);
         }
         catch (DAOException exception){
+            logException(exception);
             throw new RuntimeException(exception);
         }
     }
@@ -134,7 +147,16 @@ public class ChatAppServer {
             return UsernameChangeResult.username_occupied;
         }
         catch (DAOException exception){
+            logException(exception);
             throw new RuntimeException(exception);
         }
     }
+
+    protected void logInfo(String info){
+        logger.info(info);
+    }
+    protected void logException(Exception exception){
+        logger.error(exception);
+    }
+
 }

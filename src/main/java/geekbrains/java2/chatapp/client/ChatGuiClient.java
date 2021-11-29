@@ -35,7 +35,7 @@ public class ChatGuiClient {
             username = connector.readUTF();
             connectedUsers = (HashMap<Integer,String>)connector.readObject();
             List<Message> messageHistory = (List<Message>) connector.readObject();
-            messageHistory = logger.readMessages(100);
+//            messageHistory = logger.readMessages(100);
             initiateChat(connectedUsers,messageHistory);
             authFrame.closeView();
         }
