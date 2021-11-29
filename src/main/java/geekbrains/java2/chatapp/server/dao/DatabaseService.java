@@ -33,7 +33,6 @@ public class DatabaseService {
                 return Optional.of(
                         new User(resultSet.getInt("id"),
                                 resultSet.getString("login"),
-                                resultSet.getString("password"),
                                 resultSet.getString("username"))
                 );
             }
